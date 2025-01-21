@@ -1,0 +1,27 @@
+CREATE TABLE USERS(
+    uid INT AUTO_INCREMENT PRIMARY KEY,
+        firstname VARCHAR(25) NOT NULL,
+        lastname VARCHAR(25) NOT NULL,
+        email VARCHAR(50) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            password VARCHAR(8) NOT NULL,
+            confirmpassword VARCHAR(8) NOT NULL
+);
+CREATE TABLE COMMENTS(
+    cid INT AUTO_INCREMENT PRIMARY KEY,
+    comments VARCHAR(50),
+    uid INT,
+    FOREIGN KEY (uid) REFERENCES USERS(uid)
+);
+CREATE TABLE LIKES(
+    lid INT AUTO_INCREMENT PRIMARY KEY,
+    likes INT(255),
+    uid INT,
+    FOREIGN KEY (uid) REFERENCES USERS(uid)
+);
+CREATE TABLE POSTS(
+    pid INT AUTO_INCREMENT PRIMARY KEY,
+    image LONGBLOB NOT NULL,
+    uid INT,
+    FOREIGN KEY(uid) REFERENCES USERS(uid)
+);
