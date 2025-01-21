@@ -1,27 +1,48 @@
 <?php
 include('conn.php');
-//create table
-  $sql = "CREATE TABLE USERS(
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  firstname VARCHAR(25) NOT NULL,
-  lastname VARCHAR(25) NOT NULL,
-  email VARCHAR(30) NOT NULL,
-  password VARCHAR(12) NOT NULL,
-  confirmpassword VARCHAR(12) NOT NULL)";
-  if(mysqli_query($conn, $sql)){
-   // echo "table created";
-  }else{
-   // echo "not table created";
-  }
+
   //insert data into users by use prepared statement
-  $stmt = $conn->prepare("INSERT INTO USERS(firstname, lastname, email, password,confirmpassword) VALUES(?,?,?,?,?)");
+  if(isset($_POST['submit'])){
+    $firstname = ($_POST["firstname"]);
+    $firstname = filter_var($firstname, FILTER_SANITIZE_STRING);
+    $lastname = ($_POST["lastname"]);
+    $lastname = filter_var($lastname, FILTER_SANITIZE_STRING);
+    $email = ($_POST["email"]);
+    $email = filter_var($email, FILTER_SANITIZE_STRING);
+    $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+    $password = filter_var($password, FILTER_SANITIZE_STRING);
+    $confirmpassword = password_hash($_POST["confirmpassword"], PASSWORD_DEFAULT);
+    $confirmpassword = filter_var($confirmpassword, FILTER_SANITIZE_STRING);
+
+    // Input validation
+    $sql = "SELECT * FROM USERS WHERE email = '$email'";
+    $result = mysqli_query($conn, $sql);
+
+    if(empty($firstname) || empty($lastname) || empty($email) || empty($password) || empty($confirmpassword)){
+      $error = "All field are required!";
+    }
+    else if(mysqli_num_rows($result) != 0){
+            $error = "User Already Exist!";
+          }
+     else{
+      // insert data users table by prepared stmt
+      $stmt = $conn->prepare("INSERT INTO USERS(firstname, lastname, email, password,confirmpassword) VALUES(?,?,?,?,?)");
+      $stmt->bind_param("sssss", $firstname, $lastname, $email, $password, $confirmpassword);
+       if($stmt){
+        $msg = "Data Inserted Successful";
+       }
+     // set parameter to execute
+     $stmt->execute();
+     }
+  }
+  /*$stmt = $conn->prepare("INSERT INTO USERS(firstname, lastname, email, password,confirmpassword) VALUES(?,?,?,?,?)");
   $stmt->bind_param("sssss", $firstname, $lastname, $email, $password, $confirmpassword);
   $firstname = ($_POST["firstname"]);
   $lastname = ($_POST["lastname"]);
   $email = ($_POST["email"]);
   $password = ($_POST["password"]);
   $confirmpassword = ($_POST["confirmpassword"]);
-  $stmt->execute();
+  $stmt->execute();*/
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,7 +64,32 @@ include('conn.php');
     
     <!-- google font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
- 
+ <style>
+  .msg h{
+    background-color: green;
+    color: white;
+    border-radius:5px;
+    padding: 12px;
+  }
+  .error h{
+          background-color:red;
+          color:red:
+          border-radius:5px;
+          padding: 12px;
+  }
+  button{
+    background-color:blue;
+    color: white;
+     border-radius: 7px;
+     font-weight:bold;
+  }
+  button:hover{
+    background-color:black;
+    cursor:pointer;
+    color: white;
+    padding: 5px;
+  }
+ </style>
 </head>
 <body>
 
@@ -70,7 +116,7 @@ include('conn.php');
  
 
         <!-- form -->
-        <form method="post" action="#" class="space-y-7 text-sm text-black font-medium dark:text-white"  uk-scrollspy="target: > *; cls: uk-animation-scale-up; delay: 100 ;repeat: true">
+        <form method="post" action="form-register.php" class="space-y-7 text-sm text-black font-medium dark:text-white"  uk-scrollspy="target: > *; cls: uk-animation-scale-up; delay: 100 ;repeat: true">
             
           <div class="grid grid-cols-2 gap-4 gap-y-7">
      
@@ -78,7 +124,7 @@ include('conn.php');
             <div>
                 <label for="firstname" class="">First name</label>
                 <div class="mt-2.5">
-                    <input id="firstname" name="firstname" type="text"  autofocus="" placeholder="First name" required="" class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5"> 
+                    <input type="text" id="firstname" name="firstname" autofocus="" placeholder="First name"  class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5" required> 
                 </div>
             </div>
 
@@ -86,7 +132,7 @@ include('conn.php');
             <div>
                 <label for="lastname" class="">Last name</label>
                 <div class="mt-2.5">
-                    <input id="lastname" name="lastname" type="text" placeholder="Last name" required="" class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5"> 
+                    <input type= "text" id="lastname" name="lastname"  placeholder="Last name" class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5" required> 
                 </div>
             </div>
           
@@ -94,7 +140,7 @@ include('conn.php');
             <div class="col-span-2">
                 <label for="email" class="">Email address</label>
                 <div class="mt-2.5">
-                    <input id="email" name="email" type="text" placeholder="Email" required="" class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5"> 
+                    <input type="text" id="email" name="email" placeholder="Email" class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5" required> 
                 </div>
             </div>
 
@@ -102,7 +148,7 @@ include('conn.php');
             <div>
               <label for="password" class="">Password</label>
               <div class="mt-2.5">
-                  <input id="password" name="password" type="text" placeholder="***"  class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5">  
+                  <input  type= "password" id="password" name="password" placeholder="***"  class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5">  
               </div>
             </div>
 
@@ -110,7 +156,7 @@ include('conn.php');
             <div>
                 <label for="cpwd" class="">Confirm Password</label>
                 <div class="mt-2.5">
-                    <input id="cpwd" name="confirmpassword" type="text" placeholder="***"  class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5">  
+                    <input type = "password" id="cpwd" name="confirmpassword" placeholder="***"  class="!w-full !rounded-lg !bg-transparent !shadow-sm !border-slate-200 dark:!border-slate-800 dark:!bg-white/5">  
                 </div>
             </div>
 
@@ -122,13 +168,22 @@ include('conn.php');
               </label>
               
             </div>
-
-
             <!-- submit button -->
             <div class="col-span-2">
-              <button type="submit" class="button bg-primary text-white w-full">Get Started</button>
+              <button name="submit" class="button bg-primary text-white w-full">Get Started</button><br><br>
             </div>
-
+                 <?php
+                 if(!empty($msg)){
+                  echo"<div class = 'msg'>
+                  <h> $msg</h>
+                  </div>";
+                 }
+                 if(!empty($email)){
+                  echo"<div class= 'error'>
+                  <h> $error</h>
+                  </div>";
+                 }
+                 ?>
           </div>
           
         </form>
